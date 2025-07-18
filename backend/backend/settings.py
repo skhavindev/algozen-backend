@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.staticfiles"
     "django.contrib.staticfilescore",
+    "django.contrib.staticfilesdjango"
     "core",
     "rest_framework",
     "corsheaders"
