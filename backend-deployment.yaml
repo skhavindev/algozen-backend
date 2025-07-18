@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oj-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oj-backend
+  template:
+    metadata:
+      labels:
+        app: oj-backend
+    spec:
+      containers:
+      - name: oj-backend
+        image: oj-backend:latest
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: code-volume
+          mountPath: /code
+      volumes:
+      - name: code-volume
+        hostPath:
+          path: /code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oj-backend
+spec:
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30080
+  selector:
+    app: oj-backend 

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-backend
+  template:
+    metadata:
+      labels:
+        app: django-backend
+    spec:
+      containers:
+      - name: django-backend
+        image: oj-backend:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: CELERY_BROKER_URL
+          value: redis://redis:6379/0
+        - name: CELERY_RESULT_BACKEND
+          value: redis://redis:6379/0
+        volumeMounts:
+        - name: code-volume
+          mountPath: /code
+      volumes:
+      - name: code-volume
+        hostPath:
+          path: /code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-backend
+spec:
+  type: NodePort
+  selector:
+    app: django-backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000 

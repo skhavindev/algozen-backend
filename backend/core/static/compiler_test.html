@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Judge Compiler Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+        .container { max-width: 700px; margin: 40px auto; background: #fff; padding: 24px 32px 32px 32px; border-radius: 10px; box-shadow: 0 2px 12px #0001; }
+        h1 { text-align: center; }
+        label { font-weight: bold; margin-top: 16px; display: block; }
+        select, textarea, button { width: 100%; margin-top: 8px; font-size: 1rem; }
+        textarea { min-height: 120px; font-family: 'Fira Mono', 'Consolas', monospace; }
+        .output { background: #222; color: #0f0; padding: 16px; border-radius: 6px; min-height: 60px; margin-top: 12px; font-family: 'Fira Mono', 'Consolas', monospace; }
+        button { background: #007bff; color: #fff; border: none; padding: 12px; border-radius: 6px; cursor: pointer; margin-top: 18px; }
+        button:active { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Online Judge Compiler (Test UI)</h1>
+        <div id="login-section">
+            <form id="login-form">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Username" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            <div id="login-status"></div>
+        </div>
+        <div id="compiler-section" style="display:none;">
+            <form id="compiler-form" onsubmit="return false;">
+                <label for="language">Language</label>
+                <select id="language">
+                    <option value="cpp">C++</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                </select>
+
+                <label for="code">Code</label>
+                <textarea id="code" placeholder="Write your code here..."></textarea>
+
+                <label for="input">Input (stdin)</label>
+                <textarea id="input" placeholder="Enter input for your program..."></textarea>
+
+                <button id="run-btn">Run</button>
+                <button id="logout-btn" type="button">Logout</button>
+            </form>
+            <label for="output">Output</label>
+            <div class="output" id="output">Waiting for code execution...</div>
+        </div>
+    </div>
+    <script>
+        function updateUI() {
+            const token = localStorage.getItem('access_token');
+            const loginSection = document.getElementById('login-section');
+            const compilerSection = document.getElementById('compiler-section');
+            const loginStatus = document.getElementById('login-status');
+            if (token) {
+                loginSection.style.display = 'none';
+                compilerSection.style.display = '';
+                loginStatus.textContent = '';
+            } else {
+                loginSection.style.display = '';
+                compilerSection.style.display = 'none';
+                loginStatus.textContent = '';
+            }
+        }
+        updateUI();
+
+        document.getElementById('login-form').onsubmit = async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginStatus = document.getElementById('login-status');
+            loginStatus.textContent = 'Logging in...';
+            try {
+                const response = await fetch('http://localhost:8000/api/auth/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (data.access) {
+                    localStorage.setItem('access_token', data.access);
+                    loginStatus.textContent = 'Login successful!';
+                    updateUI();
+                } else {
+                    loginStatus.textContent = 'Login failed!';
+                }
+            } catch (err) {
+                loginStatus.textContent = 'Login error: ' + err;
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = function() {
+            localStorage.removeItem('access_token');
+            updateUI();
+        };
+
+        document.getElementById('run-btn').onclick = async function() {
+            const lang = document.getElementById('language').value;
+            const code = document.getElementById('code').value;
+            const input = document.getElementById('input').value;
+            const outputDiv = document.getElementById('output');
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                outputDiv.textContent = 'You must be logged in to submit code.';
+                return;
+            }
+            outputDiv.textContent = 'Running...';
+            try {
+                const response = await fetch('http://localhost:8000/api/compile/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ language: lang, code: code, input: input })
+                });
+                const data = await response.json();
+                if (data.task_id) {
+                    // Poll for result
+                    let pollCount = 0;
+                    const poll = async () => {
+                        pollCount++;
+                        outputDiv.textContent = `Waiting for result... (poll #${pollCount})`;
+                        const res = await fetch(`http://localhost:8000/api/compile/result/${data.task_id}/`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        const result = await res.json();
+                        if (result.status === 'PENDING') {
+                            setTimeout(poll, 1000);
+                        } else if (result.status === 'SUCCESS') {
+                            if (result.result && result.result.output) {
+                                outputDiv.textContent = result.result.output;
+                            } else {
+                                outputDiv.textContent = 'No output.';
+                            }
+                        } else if (result.status === 'FAILURE') {
+                            outputDiv.textContent = 'Error: ' + (result.error || 'Unknown error.');
+                        } else {
+                            outputDiv.textContent = 'Status: ' + result.status;
+                        }
+                    };
+                    poll();
+                } else if (data.error) {
+                    outputDiv.textContent = 'Error: ' + data.error;
+                } else {
+                    outputDiv.textContent = 'Unknown error.';
+                }
+            } catch (err) {
+                outputDiv.textContent = 'Request failed: ' + err;
+            }
+        };
+    </script>
+</body>
+</html> 
