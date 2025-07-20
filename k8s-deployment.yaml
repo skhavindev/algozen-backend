@@ -19,11 +19,13 @@ spec:
         app: django-backend
     spec:
       containers:
-      - name: django
-        image: oj-backend:latest
-        imagePullPolicy: Never
+      - name: django-backend
+        image: ghcr.io/skhavindev/algozen-backend:latest
         ports:
         - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: django-env
         env:
         - name: DEBUG
           value: "False"
