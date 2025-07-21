@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: django-backend
-        image: ghcr.io/skhavindev/algozen-backend:latest
+        image: algozenregistry.azurecr.io/algozen-backend-aks
         ports:
         - containerPort: 8000
         envFrom:
@@ -124,8 +124,8 @@ spec:
     spec:
       containers:
       - name: celery
-        image: oj-backend:latest
-        imagePullPolicy: Never
+        image: algozenregistry.azurecr.io/algozen-backend-aks
+        imagePullPolicy: IfNotPresent
         command: ["celery", "-A", "backend", "worker", "--loglevel=info"]
         env:
         - name: CELERY_BROKER_URL
