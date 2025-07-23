@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: django-backend
-        image: oj-backend:latest
+        image: aksregistry33.azurecr.io/image-workflow-1753287535041
         imagePullPolicy: Never
         ports:
         - containerPort: 8000

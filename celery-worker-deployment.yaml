@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: celery-worker
-        image: oj-backend:latest
+        image: aksregistry33.azurecr.io/image-workflow-1753287535041
         imagePullPolicy: Never
         command: ["celery", "-A", "backend", "worker", "--loglevel=info"]
         env:

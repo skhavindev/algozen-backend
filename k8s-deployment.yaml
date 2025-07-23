@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: django-backend
-        image: algozenregistry.azurecr.io/algozen-backend-aks
+        image: aksregistry33.azurecr.io/image-workflow-1753287535041
         ports:
         - containerPort: 8000
         envFrom:
@@ -60,10 +60,10 @@ spec:
   selector:
     app: django-backend
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8000
-  type: ClusterIP
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -124,7 +124,7 @@ spec:
     spec:
       containers:
       - name: celery
-        image: algozenregistry.azurecr.io/algozen-backend-aks
+        image: aksregistry33.azurecr.io/image-workflow-1753287535041
         imagePullPolicy: IfNotPresent
         command: ["celery", "-A", "backend", "worker", "--loglevel=info"]
         env:
@@ -159,3 +159,34 @@ spec:
             name: django-service
             port:
               number: 80 
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: django-backend-hpa
+  namespace: oj-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: django-backend
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: django-backend-pdb
+  namespace: oj-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: django-backend 
