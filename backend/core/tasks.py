@@ -59,7 +59,7 @@ def run_code_job_subprocess(language, code, stdin, shared_dir):
             if language.lower() == 'python':
                 result = subprocess.run(
                     ['python', code_path],
-                    input=stdin.encode(),
+                    input=stdin,
                     capture_output=True,
                     text=True,
                     timeout=10,
@@ -80,7 +80,7 @@ def run_code_job_subprocess(language, code, stdin, shared_dir):
                 # Run compiled code
                 result = subprocess.run(
                     [os.path.join(temp_dir, 'a.out')],
-                    input=stdin.encode(),
+                    input=stdin,
                     capture_output=True,
                     text=True,
                     timeout=10,
@@ -102,7 +102,7 @@ def run_code_job_subprocess(language, code, stdin, shared_dir):
                 class_name = config_obj['file_name'].replace('.java', '')
                 result = subprocess.run(
                     ['java', class_name],
-                    input=stdin.encode(),
+                    input=stdin,
                     capture_output=True,
                     text=True,
                     timeout=10,
