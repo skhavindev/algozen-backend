@@ -62,7 +62,8 @@ def release_job_slot():
 @permission_classes([IsAuthenticated])
 def compile_code(request):
     try:
-        data = json.loads(request.body)
+        # Use request.data instead of json.loads(request.body) to avoid body stream issues
+        data = request.data
         language = data.get('language')
         code = data.get('code')
         stdin = data.get('input', '')
