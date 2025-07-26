@@ -28,6 +28,7 @@ from .serializers import SolvedProblemSerializer
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+import time
 
 
 User = get_user_model()
@@ -64,8 +65,12 @@ class SubmissionDetailView(RetrieveAPIView):
 
 @api_view(['GET'])
 def health_check(request):
-    """Health check endpoint for Kubernetes probes"""
-    return Response({"status": "healthy"}, status=status.HTTP_200_OK)
+    """Health check endpoint for Render deployment"""
+    return Response({
+        "status": "healthy", 
+        "message": "Algozen Backend is running",
+        "timestamp": time.time()
+    }, status=status.HTTP_200_OK)
 
 class CustomLoginView(APIView):
     def post(self, request):
