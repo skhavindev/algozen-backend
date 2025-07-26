@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: oj-backend
-        image: oj-backend:latest
+        image: aksregistry33.azurecr.io/image-workflow-1753287535041
         ports:
         - containerPort: 8000
         volumeMounts:
