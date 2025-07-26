@@ -87,9 +87,20 @@ def compile_code(request):
         input_path = f'{shared_dir}/input.txt'
         with open(input_path, 'w') as f:
             f.write(stdin)
-        # Submit to Celery, passing the shared_dir
-        task = run_code_job.delay(language, code, stdin, shared_dir)
-        return JsonResponse({'task_id': task.id, 'status': 'PENDING'})
+        # Check if we should use Celery or run synchronously
+        use_celery = os.environ.get('USE_CELERY', 'false').lower() == 'true'
+        
+        if use_celery:
+            # Submit to Celery, passing the shared_dir
+            task = run_code_job.delay(language, code, stdin, shared_dir)
+            return JsonResponse({'task_id': task.id, 'status': 'PENDING'})
+        else:
+            # Run synchronously (better for Render)
+            try:
+                result = run_code_job(language, code, stdin, shared_dir)
+                return JsonResponse({'task_id': f'sync-{int(time.time()*1000)}', 'status': 'SUCCESS', 'result': result})
+            except Exception as e:
+                return JsonResponse({'task_id': f'sync-{int(time.time()*1000)}', 'status': 'FAILURE', 'error': str(e)})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
@@ -99,6 +110,11 @@ def compile_code(request):
 @permission_classes([IsAuthenticated])
 def compile_result(request, task_id):
     try:
+        # Check if this is a synchronous task
+        if task_id.startswith('sync-'):
+            return JsonResponse({'error': 'Synchronous tasks are completed immediately'}, status=400)
+        
+        # Handle Celery tasks
         result = AsyncResult(task_id)
         if result.state == 'PENDING':
             return JsonResponse({'status': 'PENDING'})
