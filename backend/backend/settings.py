@@ -68,7 +68,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = "backend.urls"
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000,https://algozen.vercel.app").split(",")
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000,https://algozen.vercel.app,http://localhost:3001,https://algozen-frontend.onrender.com").split(",")
 
 TEMPLATES = [
     {
