@@ -75,7 +75,7 @@ def compile_code(request):
             user = getpass.getuser()
             shared_base = f'C:/Users/{user}/.minikube/files/code'
         else:
-            shared_base = '/home/docker/code'
+            shared_base = '/tmp/code'
         os.makedirs(shared_base, exist_ok=True)
         job_name = f"oj-job-{int(time.time()*1000)}"
         shared_dir = f'{shared_base}/{job_name}'
