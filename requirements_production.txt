@@ -1,0 +1,29 @@
+# Production requirements for Algozen Backend
+# Install with: pip install -r requirements_production.txt
+
+# Django and REST Framework
+Django==5.2.3
+djangorestframework==3.15.0
+djangorestframework-simplejwt==5.3.0
+django-cors-headers==4.3.1
+
+# Database
+psycopg2-binary==2.9.9  # PostgreSQL adapter for production
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Celery for background tasks
+celery==5.3.4
+redis==5.0.1
+
+# Kubernetes (if needed for code execution)
+kubernetes==28.1.0
+
+# Additional utilities
+gunicorn==21.2.0  # Production WSGI server
+whitenoise==6.6.0  # Static file serving
+
+# Development tools (optional for production)
+# django-debug-toolbar==4.2.0
+# ipython==8.17.2 
